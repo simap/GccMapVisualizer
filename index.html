@@ -13,7 +13,7 @@
     <body>
         <a href="https://github.com/jotux/GccMapVisualizer"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_white_ffffff.png" alt="Fork me on GitHub"></a>
         <div id="body">
-            <div class="container">
+            <div class="">
                 <div class="page-header">
                     <h1>GCC LINKER MAP VISUALIZER <small>parse gcc linker maps to visually understand code usage</small></h1>
                     <input class="btn btn-default btn-file" type="file" id="file" name="file" enctype="multipart/form-data" />
@@ -38,13 +38,14 @@
             }
             function loadChart(item_height,root)
             {
-                var w = 1120,
+                window.mapData = root;
+                var w = window.innerWidth - 20,
                     h = 800,
                     x = d3.scale.linear().range([0, w]),
                     y = d3.scale.linear().range([0, h]);
                 var partition = d3.layout.partition()
                                   .sort(function(a,b){return d3.ascending(a.index,b.index);})
-                                  .value(function(d) { return d.size; });
+                                  .value(function(d) { return parseInt(d.size); });
                 d3.select("#chart").remove();
                 var vis = d3.select("#chart_container")
                             .append("div")
@@ -61,7 +62,7 @@
                            .enter().append("svg:g")
                            .attr("transform", function(d) { return "translate(" + x(d.y) + "," + y(d.x) + ")"; })
                            .on("click", click);
-
+                           
                 var kx = w / root.dx,
                     ky = h / 1;
                 g.append("svg:rect")
@@ -71,8 +72,8 @@
 
                 g.append("svg:text")
                  .attr("transform", textTransform)
-                 .style("opacity", function(d) { return d.dx * ky > 12 ? 1 : 0; })
-                 .text(function(d) { return d.size? (d.name + " @ " + d.address + " (" + d.size + ")") : d.name; })
+                 .style("opacity", function(d) { return d.dx * ky > 12 ? 1 : 0; }) //this hides the text if it's too small
+                 .text(function(d) { return d.size? (d.name + " @ " + d.address + " = " + d.size + " (" + parseInt(d.size) + ")") : d.name; })
 
                 d3.select(window)
                   .on("click", function() { click(root); })

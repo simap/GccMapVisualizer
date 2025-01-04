@@ -69,6 +69,38 @@ function ParseMapFile(map_data)
             }
         }
     }
+
+    //for each section, group contigous items that are less than 30 bytes together into a group. the group's children will be the items
+    for (var i = 0; i < sections[0].children.length; i++) {
+        var section = sections[0].children[i];
+        var newChildren = [];
+        for (var j = 0; j < section.children.length; j++) {
+            var item = section.children[j];
+            if (parseInt(item.size) < 100) {
+                var groupItems = [item];
+                while (j < section.children.length-1 && parseInt(section.children[j + 1].size) < 30) {
+                    groupItems.push(section.children[j+1]);
+                    j++;
+                }
+
+                var startAddress = groupItems[0].address;
+                var endAddress = groupItems[groupItems.length-1].address;
+                var rangeSize = parseInt(endAddress) - parseInt(startAddress);
+
+                if (groupItems.length > 1) {
+                    group = new Section(item.index, "Group", groupItems);
+                    group.address = startAddress + "-" + endAddress;
+                    group.size = "0x" + groupItems.reduce(function(a, b) { return a + parseInt(b.size); }, 0).toString(16)
+                    newChildren.push(group);
+                }
+
+            } else {
+                newChildren.push(item);
+            }
+        }
+        section.children = newChildren;
+    }
+
     // 12px per line for each item
     item_height *= 6;
     item_height = Math.round(item_height);
